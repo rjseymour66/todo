@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"testing"
 )
 
@@ -45,7 +46,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestTodoCLI(t *testing.T) {
-	task := "test task number 1"
 
 	// dir stores a rooted path name
 	dir, err := os.Getwd()
@@ -57,6 +57,9 @@ func TestTodoCLI(t *testing.T) {
 	cmdPath := filepath.Join(dir, binName)
 
 	// t.Run creates subtests that depend on each other
+
+	// Add task from args
+	task := "test task number 1"
 	t.Run("AddNewTaskFromArguments", func(t *testing.T) {
 		cmd := exec.Command(cmdPath, "-add", task)
 
@@ -65,6 +68,7 @@ func TestTodoCLI(t *testing.T) {
 		}
 	})
 
+	// Add task from STDIN
 	task2 := "test task number 2"
 	t.Run("AddNewTaskFromSTDIN", func(t *testing.T) {
 		cmd := exec.Command(cmdPath, "-add")
@@ -80,7 +84,10 @@ func TestTodoCLI(t *testing.T) {
 		}
 	})
 
+	// List tasks
 	t.Run("ListTasks", func(t *testing.T) {
+		// Command returns a Cmd struct to execute the named program
+		// with the given args
 		cmd := exec.Command(cmdPath, "-list")
 		// out stores the combined STDOUT and STDERR output
 		out, err := cmd.CombinedOutput()
@@ -93,4 +100,48 @@ func TestTodoCLI(t *testing.T) {
 			t.Errorf("Expected %q, got %q instead\n", expected, string(out))
 		}
 	})
+	// List incomplete tasks
+	incTask := "Incomplete task"
+	t.Run("ListIncompleteTasks", func(t *testing.T) {
+		// Build add completed command
+		cmd := exec.Command(cmdPath, "-add", incTask)
+
+		if err := cmd.Run(); err != nil {
+			t.Fatal(err)
+		}
+		// Build complete command
+		compCmd := exec.Command(cmdPath, "-complete", strconv.Itoa(3))
+
+		if err := compCmd.Run(); err != nil {
+			t.Fatal(err)
+		}
+
+		// Build the incomplete command
+		cmdInc := exec.Command(cmdPath, "-incomp")
+
+		// out stores STDOUT and STDERR output
+		out, err := cmdInc.CombinedOutput()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expected := fmt.Sprintf("  1: %s\n  2: %s\n", task, task2)
+		if expected != string(out) {
+			t.Errorf("Expected %q, got %q instead\n", expected, string(out))
+		}
+	})
+
+	// Delete tasks
+	delTask := strconv.Itoa(1)
+	t.Run("DeleteTasks", func(t *testing.T) {
+		cmd := exec.Command(cmdPath, "-delete", delTask)
+
+		// If -delete returns a nil, there is an error
+		if err := cmd.Run(); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	// Complete tasks
+
 }

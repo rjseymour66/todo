@@ -26,8 +26,12 @@ func main() {
 
 	// assign flags. resulting vars are ptrs
 	add := flag.Bool("add", false, "Add task to the ToDo list")
-	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
+	delete := flag.Int("delete", 0, "Delete task from the ToDo list")
+	list := flag.Bool("list", false, "List all tasks")
+	incomp := flag.Bool("incomp", false, "Lists incomplete tasks")
+	// Not completed
+	verbose := flag.Bool("verbose", false, "Include additional ToDo item information")
 
 	flag.Parse()
 
@@ -53,6 +57,10 @@ func main() {
 	case *list:
 		// list current ToDo items
 		fmt.Print(l)
+	/////////////////////////////////////////////
+	case *list && *verbose:
+		fmt.Print(l)
+	////////////////////////////////////////////
 	case *complete > 0:
 		// Complete the given item
 		if err := l.Complete(*complete); err != nil {
@@ -82,6 +90,20 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case *delete > 0:
+		// Delete the task by number
+		if err := l.Delete(*delete); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		// Save the new list
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	case *incomp:
+		fmt.Print(l.Incomplete())
 	default:
 		// Invalid flag provided
 		fmt.Fprintln(os.Stderr, "Invalid option")
