@@ -21,6 +21,9 @@ func main() {
 			"%s tool. Developed for Command Line Applications in Golang\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2021\n")
 		fmt.Fprintln(flag.CommandLine.Output(), "Usage information:")
+		fmt.Fprintln(flag.CommandLine.Output(), "To add a todo, use the '-add' flag and supply")
+		fmt.Fprintln(flag.CommandLine.Output(), "a task string to the command line, or pipe")
+		fmt.Fprintln(flag.CommandLine.Output(), "a task to todo with the '-add' option")
 		flag.PrintDefaults()
 	}
 
@@ -30,8 +33,6 @@ func main() {
 	delete := flag.Int("delete", 0, "Delete task from the ToDo list")
 	list := flag.Bool("list", false, "List all tasks")
 	incomp := flag.Bool("incomp", false, "Lists incomplete tasks")
-	// Not completed
-	verbose := flag.Bool("verbose", false, "Include additional ToDo item information")
 
 	flag.Parse()
 
@@ -57,10 +58,6 @@ func main() {
 	case *list:
 		// list current ToDo items
 		fmt.Print(l)
-	/////////////////////////////////////////////
-	case *list && *verbose:
-		fmt.Print(l)
-	////////////////////////////////////////////
 	case *complete > 0:
 		// Complete the given item
 		if err := l.Complete(*complete); err != nil {
@@ -114,16 +111,21 @@ func main() {
 // getTask decides whether to get the description for a new
 // task from the arguments or STDIN
 func getTask(r io.Reader, args ...string) (string, error) {
+	// if there are args provided to the command, concatenate
+	// them and return
 	if len(args) > 0 {
 		return strings.Join(args, " "), nil
 	}
 
+	// create a scanner and read a line (reads lines by default)
 	s := bufio.NewScanner(r)
 	s.Scan()
+	// return if there is an error reading the line
 	if err := s.Err(); err != nil {
 		return "", err
 	}
 
+	// if the scanner didn't read anything, return error
 	if len(s.Text()) == 0 {
 		return "", fmt.Errorf("Task cannot be blank")
 	}

@@ -109,32 +109,9 @@ func (l *List) String() string {
 		if t.Done {
 			prefix = "X "
 		}
-
-		// time
-
 		// Adjust the item number k to print numbers starting from 1 instead of 0
 		// Sprintf returns a formatted string
 		formatted += fmt.Sprintf("%s%d: %s\n", prefix, k+1, t.Task)
-		// formatted += fmt.Sprintf("%s%d: %s %s\n", prefix, k+1, t.Task, t.CreatedAt.Format(time.RFC822))
-
 	}
 	return formatted
 }
-
-// DOES NOT WORK
-// func (l *List) Verbose() string {
-// 	formatted := ""
-
-// 	for k, t := range *l {
-// 		prefix := "  "
-// 		if t.Done {
-// 			prefix = "X "
-// 		}
-
-// 		formatted += fmt.Sprintf("%s%d: %s created: %s\n", prefix, k+1, t.Task, t.CreatedAt.Format(time.RFC822))
-
-// 		CORRECT: task.CreatedAt.Format(time.RFC822)
-// 	}
-
-// 	return formatted
-// }
